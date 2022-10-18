@@ -1,30 +1,24 @@
-function A = populateA(q, p)
-    A = zeros(p+q, p*q);
-    j = 1;
-    i = 1;
-
-    while j <= p*q
-        sj = 1;
+function A = populateA(p, q)
+    sA = zeros(1, p*q);
     
-        while sj <= p
-            A(i, j) = 1;
-    
-            sj = sj + 1;
-            j = j + 1;
-        end
-        i = i + 1;
+    % Create supply end
+    for i = 1:q
+        sA(1,i) = 1;
     end
-    % Populate Demand
-    offset = 0;
-    ro = i-1 ;
-    for j = 1:p 
     
-        for i = 0:q-1
-            loc = p*i+1 + offset;
-            A(j+ro, loc) = -1;
-        end
+    circ = functions.circulant(sA, 1);
     
-        offset = offset + 1;
+    index = 1;
+    for i = 1:p-1
+        index = index + q;
+        newRow = circ(index,:);
+        sA = [sA;newRow];
     end
-    disp(A)
+    
+    % Demand section
+    pattern = -eye(q);
+    dA = repmat(pattern, 1, p);
+    
+    % Concatanate sections
+    A = [sA; dA];
 end

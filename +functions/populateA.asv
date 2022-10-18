@@ -1,0 +1,78 @@
+% populate(3, 2)
+
+p=2;q=3;
+
+sA = zeros(1, p*q);
+
+% Create supply end
+for i = 1:q
+    sA(1,i) = 1;
+end
+
+circ = functions.circulant(sA, 1);
+
+index = 1;
+for i = 1:p-1
+    index = index + q;
+    newRow = circ(index,:);
+    sA = [sA;newRow];
+end
+
+% Demand section
+pattern = -eye(q);
+dA = repmat(x, 1, p);
+
+A = [sA; dA]
+
+% aim = [     1     1     0     0     0     0
+%      0     0     1     1     0     0
+%      0     0     0     0     1     1
+%     -1     0    -1     0    -1     0
+%      0    -1     0    -1     0    -1]
+
+function A = populate(p, q)
+    % Supply matrix
+%     sA = zeros(1, p*q);
+% 
+%     for i = 1:q
+%         sA(1,i) = 1;
+%     end
+% 
+%     circ = functions.circulant(sA, 1);
+%     
+%     index = 1;
+%     for i = 1:p-1
+%         index = index + p;
+%         newRow = circ(index,:);
+%         sA
+%         sA = [sA;newRow];
+%     end
+
+    A = zeros(p+q, p*q);
+    j = 1;
+    i = 1;
+
+    while j <= p*q
+        sj = 1;
+    
+        while sj <= q
+            A(i, j) = 1;
+    
+            sj = sj + 1;
+            j = j + 1;
+        end
+        i = i + 1;
+    end
+    % Populate Demand
+    offset = 0;
+    ro = i-1 ;
+    for j = 1:q 
+    
+        for i = 0:p-1
+            loc = q*i+1 + offset;
+            A(j+ro, loc) = -1;
+        end
+    
+        offset = offset + 1;
+    end
+end
