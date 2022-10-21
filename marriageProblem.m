@@ -2,10 +2,10 @@
 % Hungarian Algorythm
 
 %% Build random transportation problem data
-p = 4; % num people
+p = 400; % num people
 %% set up attractions: Larger the number, the greater the attraction
-mFeature = rand(p)
-fFeature = rand(p)
+mFeature = rand(p);
+fFeature = rand(p);
 
 %% compute a cost matrix
 C = mFeature .* fFeature;
@@ -29,6 +29,7 @@ end
 %%
 reducer = determineZeroRows(hC, p);
 linesRequired = sum(sum(reducer));
+loops = 0;
 while linesRequired < p
     zC = hC;
 
@@ -59,6 +60,9 @@ while linesRequired < p
     
     reducer = determineZeroRows(hC, p);
     linesRequired = sum(sum(reducer));
+    loops = loops + 1;
+
+    disp(loops)
 end
 
 %% Determine optimal solution
@@ -70,13 +74,13 @@ for i = 1:length(optimalSolutions)
     colI = optimalSolutions(2, i);
     
     msg = ['Man ' num2str(rowI) ' is paired with Woman ' num2str(colI)];
-    disp(msg)
+%     disp(msg)
     
     msg = ['Mans attraction to women is ' num2str(mFeature(rowI, colI))];
-    disp(msg)
+%     disp(msg)
     
     msg = ['Womans attraction to man is ' num2str(fFeature(rowI, colI))];
-    disp(msg)
+%     disp(msg)
     
     solutions(rowI, colI) = C(rowI, colI);
 end
