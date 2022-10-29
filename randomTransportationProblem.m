@@ -1,6 +1,6 @@
 %% Build random transportation problem data
 p = 100; % num factories
-q = 200; % num markets
+q = 100; % num markets
 totalSupply = 1;
 totalDemand = 1;    
 % Experiment with these bits
