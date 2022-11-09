@@ -2,25 +2,25 @@
 % Hungarian Algorythm
 
 %% Build random transportation problem data
-p = 20; % num people
+p = 4; % num people
 %% set up attractions: Larger the number, the greater the attraction
-mFeature = rand(p);
-fFeature = rand(p);
+mFeature=rand(p,1);
+fFeature=rand(p,1);
+C = abs(mFeature-fFeature');
 
-%% compute a cost matrix
-C = mFeature .* fFeature;
+%% Hungarian algorithm
 
 % minimisation for hungarian algorythm. For maximisation:
 hC = 1 - C;
 
-solutions = functions.applyHungarianAlgorithm(p, hC);
+solutions = functions.applyHungarianAlgorithm(hC);
+
+%% intlinprog solution
 
 
+A = functions.populateA(p, p, 'marriage');
 
-C = [82 	83 	69 	92;
-	77 	37 	49 	92;
- 	11 	69 	5 	86;
- 	8 	9 	98 	23];
+b = 2*ones(p+p);
 
 
 

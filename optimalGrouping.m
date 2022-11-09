@@ -41,7 +41,7 @@ if RANDOMISE
 else
     C = readmatrix('ProblemRankData.csv');
     % Punish lower scores more
-    C_heightened = C .^ 10;
+    C_heightened = C;
     numStudents = length(C);
     numGroups = width(C);
 end
@@ -52,28 +52,41 @@ f = reshape(C_heightened', [], 1);
 minSize = ceil(numStudents / numGroups) - slack;
 maxSize = ceil(numStudents / numGroups) + slack;
 
+
+% Define group constraints
 A_circ = zeros(1, numGroups);
 A_circ(1, 1) = 1;
 circ = functions.circulant(A_circ, 1);
-    
+
 A1 = repmat(circ, 1, numStudents);
 A2 = -A1;
 
-b1 = zeros(numGroups, 1);
-b1(:,1) = maxSize;
-
 b2 = zeros(numGroups, 1);
-b2(:,1) = -minSize;
+b2(:,1) = maxSize;
+
+b3 = zeros(numGroups, 1);
+b3(:,1) = -minSize;
 
 A = [A1; A2];
-b = [b1; b2];
+b = [b2; b3];
 
 if exist('REMOVE_GROUP', 'var')
     b([REMOVE_GROUP, REMOVE_GROUP + numGroups]) = 0;
 end
 
-Aeq = ones(1, numStudents*numGroups);
-beq = numStudents;
+% Define student constraints
+A_circ = zeros(1, numGroups*numStudents);
+A_circ(1:numGroups) = 1;
+circ = functions.circulant(A_circ, 1);
+
+Aeq = A_circ;
+for i = 1:numStudents-1
+    rowIndex = numGroups * i + 1;
+    row = circ(rowIndex, :);
+    Aeq = [Aeq; row];    
+end
+
+beq = ones(numStudents, 1);
  
 % Enforce all results to equal 1
 intcon = ones(numStudents, 1);
@@ -89,7 +102,16 @@ ub = ones(numStudents*numGroups, 1);
 solutions = reshape(x, numGroups,numStudents)';
 
 plotSolutions(solutions, C, minSize, maxSize)
+groups = assignNames(solutions, numGroups);
 
+%% Assignment tables
+function groupings = assignNames(solutions, numGroups)
+groupings = struct;
+for col = 1:numGroups
+    students = find(solutions(:,col))
+    groupings.(['group' num2str(col)]) = students;
+end
+end
 
 %% Graphical checks
 function plotSolutions(solutions, C, minSize, maxSize)

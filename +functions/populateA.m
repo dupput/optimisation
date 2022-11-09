@@ -1,4 +1,4 @@
-function A = populateA(p, q)
+function A = populateA(p, q, an)
     sA = zeros(1, p*q);
     
     % Create supply end
@@ -15,8 +15,12 @@ function A = populateA(p, q)
         sA = [sA;newRow];
     end
     
-    % Demand section
-    pattern = -eye(q);
+    if strcmp(an, 'transportation')
+        % Demand section
+        pattern = -eye(q);
+    elseif strcmp(an, 'marriage')
+        pattern = eye(q);
+    end
     dA = repmat(pattern, 1, p);
     
     % Concatanate sections

@@ -1,6 +1,6 @@
 %% Build random transportation problem data
-p = 100; % num factories
-q = 100; % num markets
+p = 10; % num factories
+q = 10; % num markets
 totalSupply = 1;
 totalDemand = 1;    
 % Experiment with these bits
@@ -22,7 +22,7 @@ C = ((XXs-XXd).^2 + (YYs-YYd).^2).^0.5;  % cost matrix
 %% Find a solution using linprog
 f = reshape(C', [], 1);
 
-A = functions.populateA(p, q);
+A = functions.populateA(p, q, 'transportation');
 b = [s;-d];
 
 Aeq = [];
