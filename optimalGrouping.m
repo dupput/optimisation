@@ -54,10 +54,10 @@ maxSize = ceil(numStudents / numGroups) + slack;
 
 
 % Define group constraints
-A_circ = zeros(1, numGroups);
-A_circ(1, 1) = 1;
-circ = functions.circulant(A_circ, 1);
-
+% A_circ = zeros(1, numGroups);
+% A_circ(1, 1) = 1;
+% circ = functions.circulant(A_circ, 1);
+circ = eye(numGroups);
 A1 = repmat(circ, 1, numStudents);
 A2 = -A1;
 
