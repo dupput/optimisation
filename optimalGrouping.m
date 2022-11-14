@@ -25,7 +25,7 @@ RANDOMISE = false;
 slack = 1;
 
 % If a group needs removing
-REMOVE_GROUP = 4;
+% REMOVE_GROUP = 4;
 
 if RANDOMISE
     numStudents = 100;
@@ -49,8 +49,8 @@ end
 f = reshape(C_heightened', [], 1);
 
 %% Set up constraints and apply linprog function
-minSize = ceil(numStudents / numGroups) - slack;
-maxSize = ceil(numStudents / numGroups) + slack;
+minSize = 3%ceil(numStudents / numGroups) - slack;
+maxSize = 5%ceil(numStudents / numGroups) + slack;
 
 
 % Define group constraints
@@ -95,20 +95,73 @@ intcon = ones(numStudents, 1);
 lb = zeros(numStudents*numGroups,1);
 ub = ones(numStudents*numGroups, 1);
 
-%% Apply intlinprog func
+% Apply intlinprog func
 [x, fval, exitFlag] = intlinprog(f,intcon,A,b,Aeq,beq,lb,ub);
+%%
+% Load in problem data
+C = readmatrix('ProblemRankData.csv');
+
+% Unravel C into one dimensional array
+X = reshape(C', [], 1);
+
+% Determine hyperparameters of problem from data
+q = width(C);
+p = length(C);
+
+% Set min, max group sizes
+gmin = 3;
+gmax = 7;
+
+% Initialise Aeq
+Aeq = zeros(p, p*q);
+
+% Iteratively populate each new row corresponding to its unravelled postion in X
+shift = 1;
+for i = 1:p
+    Aeq(i, shift:i*14) = 1;
+    shift = shift + 14;
+end
+
+beq = ones(p, 1);
+
+% Build the inequality matrices A and b
+pattern = eye(q);
+A_max = repmat(pattern, 1, p);
+b_max = gmax * ones(q, 1);
+
+A_min = -A_max;
+b_min = -gmin * ones(q, 1);
+
+% Concatanate the min and max inequality matrices
+A = [A_max; A_min];
+b = [b_max; b_min];
+
+
+% b([4, 18]) = 0;
+b([6, 20]) = 0;
+
+
+% Enforce all results to be integer values
+intcon = ones(p, 1);
+
+% Enforce binary results
+lb = zeros(p*q,1);
+ub = ones(p*q, 1);
+
+% Apply intlinprog func
+x = intlinprog(X,intcon,A,b,Aeq,beq,lb,ub);
 
 % Each column represents group # and row represents student
 solutions = reshape(x, numGroups,numStudents)';
 
-plotSolutions(solutions, C, minSize, maxSize)
-groups = assignNames(solutions, numGroups);
+plotSolutions(solutions, C, gmin, gmax)
+% groups = assignNames(solutions, numGroups);
 
 %% Assignment tables
 function groupings = assignNames(solutions, numGroups)
 groupings = struct;
 for col = 1:numGroups
-    students = find(solutions(:,col))
+    students = find(solutions(:,col));
     groupings.(['group' num2str(col)]) = students;
 end
 end
@@ -143,7 +196,7 @@ X = reordercats(X,xLabels);
 bar(X, plottingData, 'stacked')
 title(['Group sizes: ' num2str(minSize) ' to ' num2str(maxSize)])
 ylabel('Number of students per group')
-legend(labels{1:worstChoice}, 'location', 'bestoutside')
-
+legend(labels{1:worstChoice}, 'location', 'best')
+ylim([0 7])
 end
 
