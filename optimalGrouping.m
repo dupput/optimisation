@@ -103,6 +103,7 @@ C = readmatrix('ProblemRankData.csv');
 
 % Unravel C into one dimensional array
 X = reshape(C', [], 1);
+X = X.^3;
 
 % Determine hyperparameters of problem from data
 q = width(C);
@@ -152,7 +153,7 @@ ub = ones(p*q, 1);
 x = intlinprog(X,intcon,A,b,Aeq,beq,lb,ub);
 
 % Each column represents group # and row represents student
-solutions = reshape(x, numGroups,numStudents)';
+solutions = reshape(x, q, p)';
 
 plotSolutions(solutions, C, gmin, gmax)
 % groups = assignNames(solutions, numGroups);
