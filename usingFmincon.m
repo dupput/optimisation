@@ -41,7 +41,7 @@ lb = [];
 
 nonclon = [];%@nonlcon;
 
-[x,fval,exitglag,output] = fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonclon);
+[x,fval] = fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonclon);
 
 
 

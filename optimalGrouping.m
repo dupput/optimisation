@@ -49,69 +49,77 @@ end
 f = reshape(C_heightened', [], 1);
 
 %% Set up constraints and apply linprog function
-minSize = 3%ceil(numStudents / numGroups) - slack;
-maxSize = 5%ceil(numStudents / numGroups) + slack;
 
-
-% Define group constraints
-% A_circ = zeros(1, numGroups);
-% A_circ(1, 1) = 1;
+% minSize = min;%ceil(numStudents / numGroups) - slack;
+% maxSize = max;%ceil(numStudents / numGroups) + slack;
+% 
+% 
+% % Define group constraints
+% % A_circ = zeros(1, numGroups);
+% % A_circ(1, 1) = 1;
+% % circ = functions.circulant(A_circ, 1);
+% circ = eye(numGroups);
+% A1 = repmat(circ, 1, numStudents);
+% A2 = -A1;
+% 
+% b2 = zeros(numGroups, 1);
+% b2(:,1) = maxSize;
+% 
+% b3 = zeros(numGroups, 1);
+% b3(:,1) = -minSize;
+% 
+% A = [A1; A2];
+% b = [b2; b3];
+% 
+% % if exist('REMOVE_GROUP', 'var')
+% %     b([REMOVE_GROUP, REMOVE_GROUP + numGroups]) = 0;
+% % end
+% 
+% % Define student constraints
+% A_circ = zeros(1, numGroups*numStudents);
+% A_circ(1:numGroups) = 1;
 % circ = functions.circulant(A_circ, 1);
-circ = eye(numGroups);
-A1 = repmat(circ, 1, numStudents);
-A2 = -A1;
-
-b2 = zeros(numGroups, 1);
-b2(:,1) = maxSize;
-
-b3 = zeros(numGroups, 1);
-b3(:,1) = -minSize;
-
-A = [A1; A2];
-b = [b2; b3];
-
-if exist('REMOVE_GROUP', 'var')
-    b([REMOVE_GROUP, REMOVE_GROUP + numGroups]) = 0;
-end
-
-% Define student constraints
-A_circ = zeros(1, numGroups*numStudents);
-A_circ(1:numGroups) = 1;
-circ = functions.circulant(A_circ, 1);
-
-Aeq = A_circ;
-for i = 1:numStudents-1
-    rowIndex = numGroups * i + 1;
-    row = circ(rowIndex, :);
-    Aeq = [Aeq; row];    
-end
-
-beq = ones(numStudents, 1);
- 
-% Enforce all results to equal 1
-intcon = ones(numStudents, 1);
-
-% Enforce binary results
-lb = zeros(numStudents*numGroups,1);
-ub = ones(numStudents*numGroups, 1);
-
-% Apply intlinprog func
-[x, fval, exitFlag] = intlinprog(f,intcon,A,b,Aeq,beq,lb,ub);
+% 
+% Aeq = A_circ;
+% for i = 1:numStudents-1
+%     rowIndex = numGroups * i + 1;
+%     row = circ(rowIndex, :);
+%     Aeq = [Aeq; row];    
+% end
+% 
+% beq = ones(numStudents, 1);
+%  
+% % Enforce all results to equal 1
+% intcon = ones(numStudents, 1);
+% 
+% % Enforce binary results
+% lb = zeros(numStudents*numGroups,1);
+% ub = ones(numStudents*numGroups, 1);
+% 
+% % Apply intlinprog func
+% [x, fval, exitFlag] = intlinprog(f,intcon,A,b,Aeq,beq,lb,ub);
 %%
 % Load in problem data
 C = readmatrix('ProblemRankData.csv');
 
 % Unravel C into one dimensional array
 X = reshape(C', [], 1);
-X = X.^3;
+% X = X.^3;
 
 % Determine hyperparameters of problem from data
 q = width(C);
 p = length(C);
 
+data = zeros(6, 8);
+data(1,:) = [0,5:11];
+data(:,1) = [0, 1:5];
+minC = 2;
+maxC = 1;
+
+        
 % Set min, max group sizes
-gmin = 3;
-gmax = 7;
+gmin = 2;
+gmax = 5;
 
 % Initialise Aeq
 Aeq = zeros(p, p*q);
@@ -133,14 +141,11 @@ b_max = gmax * ones(q, 1);
 A_min = -A_max;
 b_min = -gmin * ones(q, 1);
 
+
+
 % Concatanate the min and max inequality matrices
 A = [A_max; A_min];
-b = [b_max; b_min];
-
-
-% b([4, 18]) = 0;
-b([6, 20]) = 0;
-
+b = [b_max; b_min];        
 
 % Enforce all results to be integer values
 intcon = ones(p, 1);
@@ -149,9 +154,25 @@ intcon = ones(p, 1);
 lb = zeros(p*q,1);
 ub = ones(p*q, 1);
 
-% Apply intlinprog func
-x = intlinprog(X,intcon,A,b,Aeq,beq,lb,ub);
+r = 4;
+% Initialise A3
+A3 = zeros(p, p*q);
+% Iteratively populate each new row corresponding to its unravelled postion in X
+shift = 1;
+for i = 1:p
+    A3(i, shift:i*14) = C(i, :);
+    shift = shift + 14;
+end
+% Set constraint value
+b3 = r * ones(p, 1);
+% Concatanate new constraints to original
+A = [A; A3];
+b = [b; b3];
 
+% Apply intlinprog func
+[x, fval] = intlinprog(X,intcon,A,b,Aeq,beq,lb,ub);
+        
+     
 % Each column represents group # and row represents student
 solutions = reshape(x, q, p)';
 

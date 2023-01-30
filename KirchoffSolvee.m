@@ -1,4 +1,4 @@
-function[x,V]=KirchoffSolve(st,r,listAnode,listCnode)
+function[x,V]=KirchoffSolvee(st,r,listAnode,listCnode)
 % We need to generate a dummy anode and cathode (two extra nodes),
 % and extra edges, with zero resistance, that connect them to the
 % nodes in listAnode and listCathode.
@@ -44,7 +44,7 @@ end
 % construct the B matrix - best to use sparse formulation, for large probs
 % NB this loop can be optimised if you are very clever
 options=optimoptions('quadprog','Algorithm','interior-point-convex',...
-    'Diagnostics','on','Display','iter-detailed','LinearSolver','sparse');
+    'Diagnostics','off','Display','off','LinearSolver','sparse');
 %'OptimalityTolerance',1e-18,...
 %'StepTolerance',1e-16...
 % useful options for quadprog
